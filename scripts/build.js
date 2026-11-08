@@ -64,9 +64,9 @@ if (!errors.length) {
         if (link.icon && icons.size && !icons.has(link.icon)) {
           errors.push(`${label}: unknown icon "${link.icon}" (known: ${[...icons].join(", ")})`);
         }
-        if (link.copy) return;
-        if (!link.url) errors.push(`${label}: needs a url or copy`);
-        else if (link.url === "#") warnings.push(`${label}: url is still the "#" placeholder`);
+        if (link.copy || link.soon) return;
+        if (!link.url) errors.push(`${label}: needs a url, copy, or soon: true`);
+        else if (link.url === "#") warnings.push(`${label}: no url yet -- shown as a "coming soon" card`);
         else if (!/^(https:\/\/|mailto:)/i.test(link.url)) errors.push(`${label}: url must start with https:// or mailto: (got "${link.url}")`);
       });
     }

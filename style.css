@@ -293,6 +293,44 @@ a:hover { color: #FFB070; }
 }
 .cd-small .desc { font-size: 14px; color: var(--muted); }
 
+/* coming-soon card: dimmed, dashed, faint stripes, no lift */
+.cd-soon {
+  cursor: not-allowed;
+  border-style: dashed;
+  background-image: repeating-linear-gradient(135deg, transparent 0 10px, rgba(255, 255, 255, 0.018) 10px 20px);
+}
+.cd-soon .tile, .cd-soon .title, .cd-soon .soon-desc { opacity: 0.5; filter: saturate(0.35); }
+.cd-soon::before { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .cd-soon:hover { transform: none; box-shadow: none; border-color: #4A3A2A !important; }
+  .cd-soon:hover .tile { transform: none; }
+}
+.cd-soon:active { transform: none; border-color: #4A3A2A !important; }
+.soon-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px 3px 7px;
+  border-radius: 999px;
+  border: 1px solid #3A2E22;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.cd-soon .soon-msg { display: none; color: var(--accent); font-weight: 600; }
+.cd-soon.told .soon-desc { display: none; }
+.cd-soon.told .soon-msg { display: inline; }
+.cd-soon.nudge { animation: nudge 0.4s ease; }
+@keyframes nudge {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
+
 /* copy card (a <button>, so reset the browser's button look) */
 .cd-copy { font: inherit; text-align: left; cursor: pointer; width: 100%; }
 .cd-copy .copy-text { font-family: "Space Grotesk", "IBM Plex Sans Thai", sans-serif; color: var(--text); user-select: all; overflow-wrap: anywhere; }

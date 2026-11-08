@@ -1,11 +1,13 @@
 // Everything you'd normally want to change lives here: the name under the
-// avatar, the accent colour, and the links. Replace each "#" with a real URL.
+// avatar, the accent colour, and the links.
 //
 // Links render top to bottom. The one with `featured: true` becomes the big
 // orange card on top; the rest fill the two-column grid below it.
 // `icon` is one of: heart, users, music, twitch, play, mail  (see ICONS in app.js)
 // A link with `copy: "text"` (instead of `url`) isn't a link at all: the card
 // shows that text and copies it to the clipboard when clicked.
+// A link whose url is still "#" (or that has `soon: true`) shows as a dimmed
+// "เร็วๆ นี้" card that can't be opened.
 // `tileBg` / `tileFg` colour the small icon square on grid cards.
 window.PORTAL_CONFIG = {
   name: "Esahp",

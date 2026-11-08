@@ -32,5 +32,5 @@ the live site stays on the previous deploy -- if:
 - `index.html` points at a file that doesn't exist
 - a link in `config.js` has no title, an unknown icon, or a URL that isn't `https://` / `mailto:`
 
-A link still set to `"#"` only prints a warning. Run the same check locally with
+A link still set to `"#"` only prints a warning (it shows on the page as a "coming soon" card). Run the same check locally with
 `node scripts/build.js`. Pull requests get their own Deploy Preview URL.

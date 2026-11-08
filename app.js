@@ -19,6 +19,7 @@
     mail: '<rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path>',
   };
   const ARROW = '<path d="M7 17L17 7M8 7h9v9"></path>';
+  const LOCK = '<rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path>';
   const COPY = '<rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V6a2 2 0 0 1 2-2h9"></path>';
 
   // `fill` is a parameter rather than part of `attrs`: a second fill="" on the
@@ -46,7 +47,27 @@
     );
   }
 
+  // A link with no real URL yet ("#" or missing) or marked `soon: true` shows
+  // as a dimmed "coming soon" card that goes nowhere.
+  const isSoon = (link) => !link.copy && (link.soon || !link.url || link.url === "#");
+
+  function soonCard(link, delay) {
+    const fg = !link.tileFg || link.tileFg === "accent" ? accent : link.tileFg;
+    return (
+      `<div class="cd cd-small cd-soon in" role="link" aria-disabled="true" tabindex="0" ` +
+      `title="ยังไม่เปิดให้บริการ" style="animation-delay:${delay}s">` +
+      `<div class="top">` +
+      `<div class="tile" style="background:${esc(link.tileBg || "#3A2614")};color:${esc(fg)}">${svg(24, ICONS[link.icon] || ICONS.mail, 'stroke-width="2"')}</div>` +
+      `<span class="soon-badge">${svg(11, LOCK, 'stroke-width="2.4"')}เร็วๆ นี้</span>` +
+      `</div>` +
+      `<div class="text"><span class="title">${esc(link.title)}</span>` +
+      `<span class="desc soon-desc">${esc(link.desc)}</span><span class="desc soon-msg" aria-live="polite"></span></div>` +
+      `</div>`
+    );
+  }
+
   function smallCard(link, delay) {
+    if (isSoon(link)) return soonCard(link, delay);
     const fg = !link.tileFg || link.tileFg === "accent" ? accent : link.tileFg;
     const isCopy = Boolean(link.copy);
     // A copy card is a <button>: it does something on the page rather than
@@ -105,6 +126,29 @@
       return ok;
     }
   }
+  // Coming-soon cards: a little shake and "ยังไม่เปิดให้บริการ" in place of
+  // the description, so a click doesn't just feel broken.
+  function nudgeSoon(card) {
+    card.querySelector(".soon-msg").textContent = "ยังไม่เปิดให้บริการ";
+    card.classList.remove("nudge");
+    void card.offsetWidth; // restart the shake
+    card.classList.add("nudge", "told");
+    clearTimeout(card._soonTimer);
+    card._soonTimer = setTimeout(() => card.classList.remove("told"), 1800);
+  }
+  const linksEl = document.getElementById("links");
+  linksEl.addEventListener("click", (e) => {
+    const card = e.target.closest(".cd-soon");
+    if (card) nudgeSoon(card);
+  });
+  linksEl.addEventListener("keydown", (e) => {
+    const card = e.target.closest(".cd-soon");
+    if (card && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      nudgeSoon(card);
+    }
+  });
+
   document.getElementById("links").addEventListener("click", async (e) => {
     const card = e.target.closest(".cd-copy");
     if (!card) return;
@@ -231,9 +275,10 @@
     // ---- excited pupils while a link card is hovered or focused ----
     const links = document.getElementById("links");
     const setExcited = (on) => cat.classList.toggle("excited", on);
-    links.addEventListener("pointerover", (e) => setExcited(!!e.target.closest(".cd")));
+    // Not for coming-soon cards -- nothing there to get excited about.
+    links.addEventListener("pointerover", (e) => setExcited(!!e.target.closest(".cd:not(.cd-soon)")));
     links.addEventListener("pointerleave", () => setExcited(false));
-    links.addEventListener("focusin", () => setExcited(true));
+    links.addEventListener("focusin", (e) => setExcited(!e.target.closest(".cd-soon")));
     links.addEventListener("focusout", () => setExcited(false));
 
     if (reduceMotion) return; // no idle motion beyond this point

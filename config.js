@@ -49,6 +49,7 @@ window.PORTAL_CONFIG = {
       title: "YouTube",
       desc: "คลิป · ไฮไลต์ย้อนหลัง",
       url: "https://www.youtube.com/@Esahplaw",
+      soon: true, // remove this line to open the card
       icon: "play",
       tileBg: "#3A1A1A",
       tileFg: "#FF8A8A",

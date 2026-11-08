@@ -19,7 +19,18 @@ Open `index.html` directly in a browser, or serve the folder:
 npx serve .          # or: python -m http.server
 ```
 
-## Deploy
+## Deploy (Netlify)
 
-It's static, so any static host works (GitHub Pages, Netlify, Cloudflare Pages, Vercel) -- upload the
-folder as-is.
+Connect the GitHub repo in Netlify (**Add new site → Import an existing project**); `netlify.toml`
+already sets the build, so leave the build settings as detected.
+
+On every push, Netlify runs `node scripts/build.js`, which checks the site and copies only the page's
+files into `dist/` (README, scripts and `netlify.toml` aren't published). It fails the build -- and
+the live site stays on the previous deploy -- if:
+
+- a JS file has a syntax error
+- `index.html` points at a file that doesn't exist
+- a link in `config.js` has no title, an unknown icon, or a URL that isn't `https://` / `mailto:`
+
+A link still set to `"#"` only prints a warning. Run the same check locally with
+`node scripts/build.js`. Pull requests get their own Deploy Preview URL.

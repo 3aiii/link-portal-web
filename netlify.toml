@@ -1,0 +1,26 @@
+# Netlify picks this up automatically once the repo is connected.
+# Every push to main runs the build; if scripts/build.js finds a problem the
+# build fails and the live site stays on the previous deploy. Pull requests
+# get their own Deploy Preview URL.
+
+[build]
+  command = "node scripts/build.js"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    # Scripts only from this site; Google Fonts for CSS/fonts. 'unsafe-inline'
+    # for styles because app.js renders cards with style="" attributes.
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'"
+
+# CSS/JS keep Netlify's default caching (revalidate every visit): the file
+# names aren't content-hashed, so a long max-age would keep serving old
+# versions after a deploy.

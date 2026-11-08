@@ -1,0 +1,347 @@
+/* Values follow the "Portal — Desktop" design mockup. --accent is set from
+   config.js at runtime. */
+:root {
+  --accent: #FF7A1A;
+  --accent-2: #FFA552; /* featured card gradient end */
+  --ember-alt: #FFB347;
+  --bg: #14100C;
+  --text: #F5EDE3;
+  --card: #1C1611;
+  --card-border: #2E241A;
+  --muted: #B8A794;
+  --footer: #9C8B79;
+  --grid-line: #241B13;
+  --cat-eye: #FFD23F; /* cat's irises (and its ^ ^ happy eyes) */
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+}
+
+a { color: #FF8A33; }
+a:hover { color: #FFB070; }
+
+/* ---------- page shell ---------- */
+.wrap {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "IBM Plex Sans Thai", "Space Grotesk", system-ui, sans-serif;
+  padding: 64px 20px 48px;
+  display: flex;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.grid-bg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 48px 48px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 20%, transparent 75%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 20%, transparent 75%);
+  pointer-events: none;
+}
+
+/* Follows the mouse; --sx/--sy are set by app.js. Starts off-screen. */
+.spotlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(520px circle at var(--sx, -1000px) var(--sy, -1000px), rgba(255, 122, 26, 0.12), transparent 65%);
+}
+
+.embers { position: absolute; inset: 0; pointer-events: none; }
+.ember {
+  position: absolute;
+  bottom: -20px;
+  border-radius: 50%;
+  animation-name: rise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.content {
+  width: 100%;
+  max-width: 580px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 36px;
+  position: relative;
+}
+
+/* ---------- hero ---------- */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.avatar {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.glow {
+  position: absolute;
+  inset: -30px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 122, 26, 0.45), transparent 65%);
+  filter: blur(12px);
+  animation: pulse 4s ease-in-out infinite;
+}
+.ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, var(--accent), transparent 30%, transparent 60%, var(--ember-alt), var(--accent));
+  animation: spin 6s linear infinite;
+}
+.avatar-face {
+  position: relative;
+  width: 124px;
+  height: 124px;
+  border-radius: 50%;
+  background: #1E1610;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* ---------- cat ----------
+   Moods are classes on .cat set by app.js: .blink, .excited, .happy, and
+   .twitch-l / .twitch-r. Head tilt and pupil position come in as inline
+   transforms. (CSS px inside the SVG are viewBox units.) */
+.avatar { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cat { overflow: visible; animation: bob 3.5s ease-in-out infinite; }
+
+.cat .head { transform-origin: 50px 80px; transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+.cat .eye { transform-box: fill-box; transform-origin: center; }
+.cat.blink .eye { animation: blink-once 0.16s ease-in-out; }
+@keyframes blink-once { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.08); } }
+
+.cat .pupil { transition: transform 0.12s ease-out; }
+.cat .slit { transform-box: fill-box; transform-origin: center; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.cat.excited .slit { transform: scaleX(2.4) scaleY(0.82); }
+
+.cat .ear { transition: transform 0.2s ease; }
+.cat .ear-l { transform-origin: 32px 34px; }
+.cat .ear-r { transform-origin: 68px 34px; }
+.cat.twitch-l .ear-l { animation: twitch-l 0.38s ease-in-out; }
+.cat.twitch-r .ear-r { animation: twitch-r 0.38s ease-in-out; }
+@keyframes twitch-l { 0%, 100% { transform: none; } 30% { transform: rotate(-16deg); } 60% { transform: rotate(6deg); } }
+@keyframes twitch-r { 0%, 100% { transform: none; } 30% { transform: rotate(16deg); } 60% { transform: rotate(-6deg); } }
+.cat.happy .ear-l { transform: rotate(-8deg); }
+.cat.happy .ear-r { transform: rotate(8deg); }
+
+.cat .whiskers-l { transform-origin: 30px 65px; animation: whisk-l 4s ease-in-out infinite; }
+.cat .whiskers-r { transform-origin: 70px 65px; animation: whisk-r 4s ease-in-out infinite 0.3s; }
+@keyframes whisk-l { 0%, 86%, 100% { transform: none; } 90% { transform: rotate(5deg); } 94% { transform: rotate(-3deg); } }
+@keyframes whisk-r { 0%, 86%, 100% { transform: none; } 90% { transform: rotate(-5deg); } 94% { transform: rotate(3deg); } }
+
+.cat .blush { fill: var(--accent); opacity: 0; transition: opacity 0.3s ease; }
+.cat .happy-eyes { opacity: 0; transition: opacity 0.15s ease; }
+.cat .eyes { transition: opacity 0.15s ease; }
+.cat.happy .eyes { opacity: 0; }
+.cat.happy .happy-eyes { opacity: 1; }
+.cat.happy .blush { opacity: 0.4; }
+.cat .mouth { transform-box: fill-box; transform-origin: center top; transition: transform 0.25s ease; }
+.cat.happy .mouth { transform: scale(1.25, 1.4); }
+
+/* click: squish + hearts */
+.avatar-face.boop { animation: boop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes boop { 0% { transform: scale(1); } 30% { transform: scale(1.1, 0.88); } 60% { transform: scale(0.95, 1.06); } 100% { transform: scale(1); } }
+.heart-pop {
+  position: absolute;
+  left: 50%;
+  top: 18%;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  color: var(--accent);
+  pointer-events: none;
+  z-index: 2;
+  animation: heart-pop 1.1s ease-out forwards;
+}
+@keyframes heart-pop {
+  0% { transform: translate(0, 0) scale(0.3); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translate(var(--hx), -70px) scale(1.1) rotate(var(--hr)); opacity: 0; }
+}
+
+.ttl {
+  margin: 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  animation-delay: 0.1s;
+}
+.ttl .dot { color: var(--accent); }
+
+/* ---------- link cards ---------- */
+.links {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+}
+/* An odd card out at the end spans the row instead of leaving a hole. */
+.links-grid > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+.cd {
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.cd > * { position: relative; z-index: 1; }
+.cd::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 80% at 0% 0%, rgba(255, 122, 26, 0.18), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+.cd .tile { transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.cd .arr { transition: transform 0.2s ease, opacity 0.2s ease; opacity: 0.6; flex: 0 0 auto; }
+
+@media (hover: hover) and (pointer: fine) {
+  .cd:hover {
+    transform: perspective(700px) rotateX(3deg) translateY(-4px);
+    border-color: var(--accent) !important;
+    box-shadow: 0 18px 40px -16px rgba(255, 122, 26, 0.5);
+  }
+  .cd:hover::before { opacity: 1; }
+  .cd:hover .tile { transform: scale(1.08) rotate(-6deg); }
+  .cd:hover .arr { transform: translate(3px, -3px); opacity: 1; }
+}
+.cd:active { transform: scale(0.97); border-color: var(--accent) !important; }
+.cd:active::before { opacity: 1; }
+.cd:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+.tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+/* featured (Donate) */
+.cd-featured {
+  color: #1A0F06;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  border: 2px solid var(--accent);
+  border-radius: 22px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.cd-featured:hover, .cd-featured:active { color: #1A0F06; }
+.cd-featured .tile { width: 60px; height: 60px; border-radius: 16px; background: #1A0F06; }
+.cd-featured .heart { animation: beat 1.8s ease-in-out infinite; transform-origin: center; }
+.cd-featured .text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.cd-featured .title {
+  font-family: "Space Grotesk", "IBM Plex Sans Thai", sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.cd-featured .desc { font-size: 14px; line-height: 1.5; color: #3A220E; }
+
+/* grid cards */
+.cd-small {
+  color: var(--text);
+  background: var(--card);
+  border: 2px solid var(--card-border);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.cd-small:hover, .cd-small:active { color: var(--text); }
+.cd-small .top { display: flex; justify-content: space-between; align-items: flex-start; }
+.cd-small .tile { width: 48px; height: 48px; border-radius: 14px; }
+.cd-small .text { display: flex; flex-direction: column; gap: 4px; }
+.cd-small .title {
+  font-family: "Space Grotesk", "IBM Plex Sans Thai", sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+}
+.cd-small .desc { font-size: 14px; color: var(--muted); }
+
+/* copy card (a <button>, so reset the browser's button look) */
+.cd-copy { font: inherit; text-align: left; cursor: pointer; width: 100%; }
+.cd-copy .copy-text { font-family: "Space Grotesk", "IBM Plex Sans Thai", sans-serif; color: var(--text); user-select: all; overflow-wrap: anywhere; }
+.cd-copy .copied-text { display: none; color: var(--accent); font-weight: 600; }
+.cd-copy.copied .copy-text { display: none; }
+.cd-copy.copied .copied-text { display: inline; }
+
+/* light sweep across the featured card */
+.shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 22%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: shine 3.6s ease-in-out infinite;
+  z-index: 1;
+}
+
+footer {
+  font-size: 13px;
+  color: var(--footer);
+  text-align: center;
+}
+
+/* ---------- entrance + keyframes ---------- */
+.in { animation: fadeUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { opacity: 0.45; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.12); } }
+@keyframes rise {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  10% { opacity: 0.9; }
+  100% { transform: translateY(-110vh) scale(0.4); opacity: 0; }
+}
+@keyframes shine { 0%, 60% { transform: translateX(-120%) skewX(-20deg); } 100% { transform: translateX(420%) skewX(-20deg); } }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes beat { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.15); } 30% { transform: scale(1); } 45% { transform: scale(1.1); } }
+
+@media (max-width: 480px) {
+  .wrap { padding-top: 40px; padding-bottom: 32px; }
+  .cd-featured, .cd-small { padding: 18px; }
+  .ttl { font-size: 40px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .in, .ring, .glow, .ember, .cat, .cat *, .avatar-face, .heart-pop, .cd-featured .heart, .shine::after { animation: none !important; }
+  .cat .head, .cat .pupil { transition: none; }
+  .ember { display: none; }
+  .cd:hover { transform: none; }
+}

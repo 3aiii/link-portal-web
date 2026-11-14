@@ -166,7 +166,7 @@
   if (config.name) {
     const nameEl = document.getElementById("name");
     nameEl.firstChild.textContent = config.name;
-    document.title = `${config.name} — Link Portal`;
+    document.title = config.name;
   }
 
   // Embers: fixed positions/sizes/timings from the design.

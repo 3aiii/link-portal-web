@@ -24,7 +24,7 @@ window.PORTAL_CONFIG = {
     {
       title: "Discord",
       desc: "คอมมูนิตี้ · แจ้งเตือนก่อนไลฟ์",
-      url: "#",
+      url: "https://discord.gg/gebzqTRZ7",
       icon: "users",
       tileBg: "#2B2244",
       tileFg: "#A7AEFF",

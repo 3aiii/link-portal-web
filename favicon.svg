@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Site icon: the 3D cat's face, flat. Orange disc so the black cat
+       shows on both light and dark browser tabs. -->
+  <circle cx="32" cy="32" r="32" fill="#FF7A1A"/>
+  <!-- ears -->
+  <path d="M11 33 L14 8 L29 19 Z" fill="#17110E"/>
+  <path d="M53 33 L50 8 L35 19 Z" fill="#17110E"/>
+  <path d="M16 25 L17.5 14 L24.5 19.5 Z" fill="#E58E9F"/>
+  <path d="M48 25 L46.5 14 L39.5 19.5 Z" fill="#E58E9F"/>
+  <!-- head -->
+  <ellipse cx="32" cy="38" rx="23" ry="19.5" fill="#17110E"/>
+  <!-- eyebrow spots -->
+  <circle cx="23.5" cy="27.5" r="1.7" fill="#EDE6DF"/>
+  <circle cx="40.5" cy="27.5" r="1.7" fill="#EDE6DF"/>
+  <!-- eyes: yellow, big round pupils, smug half-lids -->
+  <circle cx="23" cy="36" r="5.6" fill="#FFD23F"/>
+  <circle cx="41" cy="36" r="5.6" fill="#FFD23F"/>
+  <circle cx="23.6" cy="36.6" r="3.2" fill="#0B0806"/>
+  <circle cx="41.6" cy="36.6" r="3.2" fill="#0B0806"/>
+  <circle cx="25" cy="35.2" r="1.1" fill="#FFFFFF"/>
+  <circle cx="43" cy="35.2" r="1.1" fill="#FFFFFF"/>
+  <rect x="16.5" y="29" width="13" height="5" fill="#17110E"/>
+  <rect x="34.5" y="29" width="13" height="5" fill="#17110E"/>
+  <!-- white muzzle, pink nose, mouth -->
+  <ellipse cx="32" cy="46.5" rx="8.5" ry="6.2" fill="#EDE6DF"/>
+  <ellipse cx="32" cy="43.2" rx="2.4" ry="1.6" fill="#E8909E"/>
+  <path d="M28.6 47.4 Q30.3 49.6 32 47.4 Q33.7 49.6 35.4 47.4" fill="none" stroke="#3A2A26" stroke-width="1.3" stroke-linecap="round"/>
+</svg>

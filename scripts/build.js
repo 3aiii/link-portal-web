@@ -10,7 +10,9 @@ const vm = require("vm");
 
 const root = path.resolve(process.argv[2] || path.join(__dirname, ".."));
 const outDir = path.join(root, "dist");
-const SITE_FILES = ["index.html", "style.css", "app.js", "config.js"];
+// cat3d.js and vendor/three.min.js aren't in index.html: app.js loads them on
+// demand, so listing them here is what checks they exist and get published.
+const SITE_FILES = ["index.html", "style.css", "app.js", "config.js", "cat3d.js", "vendor/three.min.js", "favicon.svg"];
 
 const errors = [];
 const warnings = [];
@@ -84,5 +86,8 @@ if (errors.length) {
 // 5. Copy the site into dist/.
 fs.rmSync(outDir, { recursive: true, force: true });
 fs.mkdirSync(outDir);
-for (const f of SITE_FILES) fs.copyFileSync(path.join(root, f), path.join(outDir, f));
+for (const f of SITE_FILES) {
+  fs.mkdirSync(path.dirname(path.join(outDir, f)), { recursive: true });
+  fs.copyFileSync(path.join(root, f), path.join(outDir, f));
+}
 console.log(`Checks passed${warnings.length ? ` with ${warnings.length} warning(s)` : ""}. Copied ${SITE_FILES.length} files to dist/.`);

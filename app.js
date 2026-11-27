@@ -191,7 +191,7 @@
     if (e.animationName === "fadeUp") e.target.classList.remove("in");
   });
 
-  setupCat();
+  setupAvatar();
 
   // Spotlight follows the pointer; batched to one write per frame.
   const wrap = document.getElementById("wrap");
@@ -208,6 +208,37 @@
       pending = null;
     });
   });
+
+  // ---------- avatar: 3D cat, SVG cat as fallback ----------
+  // Three.js (~600 KB) loads after the links are on screen, so it never holds
+  // up the page. Until it's ready the avatar spot shows just the glow; if
+  // anything fails (no WebGL, script error) the SVG cat comes back.
+  function setupAvatar() {
+    const avatar = document.getElementById("avatar");
+    if (!avatar || !window.WebGLRenderingContext) return setupCat();
+
+    const loadScript = (src) =>
+      new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = () => reject(new Error(`failed to load ${src}`));
+        document.body.appendChild(s);
+      });
+
+    avatar.classList.add("avatar-3d");
+    loadScript("vendor/three.min.js")
+      .then(() => loadScript("cat3d.js"))
+      .then(() => {
+        const ok = window.Cat3D && window.Cat3D.mount(avatar, { accent, links: document.getElementById("links") });
+        if (!ok) throw new Error("3D cat unavailable");
+      })
+      .catch((err) => {
+        console.warn(err);
+        avatar.classList.remove("avatar-3d");
+        setupCat();
+      });
+  }
 
   // ---------- cat ----------
   // Eyes and head follow the pointer; when the pointer goes quiet (or there

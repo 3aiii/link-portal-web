@@ -26,7 +26,8 @@
   // "Fur": wrapped diffuse from the upper left, a broken-up (noisy) rim that
   // is warm accent on the right and cool violet on the left, and a soft sheen.
   // USE_TINT: per-vertex `aTint` blends toward uTint (pink inner ears) and
-  // `aWhite` toward uWhite (white muzzle and eyebrow spots).
+  // `aWhite` toward uWhite (white muzzle and eyebrow spots); `aBlush` marks
+  // the cheeks, tinted pink by uBlush (0..1) when the cat is affectionate.
   // USE_AO: per-vertex `aAO` (1 open .. 0 enclosed), baked at load, darkens
   // creases: under the chin, between the legs, round the paws on the floor.
   // USE_EARS: per-vertex `aEar` (-1..0 left ear, 0..1 right ear, weight =
@@ -39,8 +40,10 @@
     #ifdef USE_TINT
       attribute float aTint;
       attribute float aWhite;
+      attribute float aBlush;
       varying float vTint;
       varying float vWhite;
+      varying float vBlush;
     #endif
     #ifdef USE_AO
       attribute float aAO;
@@ -73,6 +76,7 @@
       #ifdef USE_TINT
         vTint = aTint;
         vWhite = aWhite;
+        vBlush = aBlush;
       #endif
       #ifdef USE_AO
         vAO = aAO;
@@ -88,8 +92,11 @@
     #ifdef USE_TINT
       uniform vec3 uTint;
       uniform vec3 uWhite;
+      uniform vec3 uBlushCol;
+      uniform float uBlush;
       varying float vTint;
       varying float vWhite;
+      varying float vBlush;
     #endif
     #ifdef USE_AO
       varying float vAO;
@@ -132,6 +139,7 @@
       float rimK = uRimK;
       #ifdef USE_TINT
         base = mix(mix(uBase, uWhite, vWhite), uTint, vTint);
+        base = mix(base, uBlushCol, vBlush * uBlush * 0.55);
         rimK *= 1.0 - 0.7 * max(vTint, vWhite);
       #endif
       float ao = 1.0;
@@ -196,15 +204,6 @@
     const g = c.getContext("2d");
     draw(g, size);
     return new THREE.CanvasTexture(c);
-  }
-
-  function softGlow(g, s) {
-    const grd = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
-    grd.addColorStop(0, "rgba(255,255,255,1)");
-    grd.addColorStop(0.25, "rgba(255,255,255,0.45)");
-    grd.addColorStop(1, "rgba(255,255,255,0)");
-    g.fillStyle = grd;
-    g.fillRect(0, 0, s, s);
   }
 
   // ---------- smooth blob meshes ----------
@@ -295,6 +294,12 @@
       const brow = Math.min(sdEll(x, y, z, -0.21, 0.27, 0.52, 0.06, 0.04, 0.06), sdEll(x, y, z, 0.21, 0.27, 0.52, 0.06, 0.04, 0.06));
       white = 1 - smoothstep(-0.015, 0.015, Math.min(muzzle, brow));
     }
+    // soft round blush patch on each cheek, outside the white muzzle
+    let blush = 0;
+    if (z > 0.2) {
+      const cheek = Math.min(sdEll(x, y, z, -0.42, -0.12, 0.42, 0.13, 0.09, 0.2), sdEll(x, y, z, 0.42, -0.12, 0.42, 0.13, 0.09, 0.2));
+      blush = (1 - smoothstep(-0.06, 0.05, cheek)) * (1 - white);
+    }
     for (let s = -1; s <= 1; s += 2) {
       const p = earParts(x, y, z, s);
       if (p.outer > 0.06) continue;
@@ -303,9 +308,9 @@
       // swells outward whenever the ear turns.
       const w = smoothstep(-0.02, 0.16, p.ly) * (1 - smoothstep(0.02, 0.06, p.outer)) * smoothstep(0.005, 0.08, faceSDF(x, y, z));
       const tint = (1 - smoothstep(0.0, 0.035, Math.abs(p.inner))) * smoothstep(0.0, 0.08, p.ly) * (p.outer < 0.03 ? 1 : 0);
-      return [s * w, tint, white];
+      return [s * w, tint, white, blush];
     }
-    return [0, 0, white];
+    return [0, 0, white, blush];
   }
 
   // Runs a generator in ~8ms slices between frames, so building the meshes
@@ -426,6 +431,7 @@
       geo.setAttribute("aEar", new THREE.Float32BufferAttribute(ext.map((v) => v[0]), 1));
       geo.setAttribute("aTint", new THREE.Float32BufferAttribute(ext.map((v) => v[1]), 1));
       geo.setAttribute("aWhite", new THREE.Float32BufferAttribute(ext.map((v) => v[2] || 0), 1));
+      geo.setAttribute("aBlush", new THREE.Float32BufferAttribute(ext.map((v) => v[3] || 0), 1));
     }
     geo.setIndex(idx);
     return geo;
@@ -609,6 +615,8 @@
       uniforms: {
         uTint: { value: new THREE.Color("#E58E9F") },
         uWhite: { value: new THREE.Color("#EDE6DF") },
+        uBlushCol: { value: new THREE.Color("#FF7F9C") },
+        uBlush: { value: 0 },
         uEarL: { value: new THREE.Vector2() },
         uEarR: { value: new THREE.Vector2() },
         uPivL: { value: new V3(-EAR_BASE[0], EAR_BASE[1], EAR_BASE[2]) },
@@ -629,7 +637,6 @@
     });
     const happyEyeMat = new THREE.MeshBasicMaterial({ color: "#FFD23F" });
     const mouthMat = new THREE.MeshBasicMaterial({ color: "#3A2A26" });
-    const glowTex = canvasTexture(THREE, 128, softGlow);
 
     const add = (parent, geo, mat, pos, scale, rot) => {
       const m = new THREE.Mesh(geo, mat);
@@ -660,7 +667,7 @@
     scene.add(shadow);
 
     // ---------- the cat ----------
-    const cat = new THREE.Group(); // root on the floor: hop and purr shiver
+    const cat = new THREE.Group(); // root on the floor: hop
     scene.add(cat);
     const body = new THREE.Group(); // breathing (scaled about the floor)
     cat.add(body);
@@ -691,7 +698,6 @@
     const EYE_R = 0.15;
     const eyeGroups = [];
     const lids = [];
-    const blushes = [];
     const happyEyes = [];
     const irisGeo = sphere(EYE_R, 40, 24);
     const lidGeo = new THREE.SphereGeometry(EYE_R * 1.1, 40, 16, 0, Math.PI * 2, 0, Math.PI / 2);
@@ -709,12 +715,6 @@
       const arc = add(head, new THREE.TorusGeometry(0.11, 0.028, 10, 28, Math.PI), happyEyeMat, [s * 0.26, 0.01, 0.6], null, [0, s * 0.3, 0]);
       arc.visible = false;
       happyEyes.push(arc);
-      // pink blush, shown when it's being affectionate
-      const blush = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: "#FF8FA8", opacity: 0, transparent: true, depthWrite: false }));
-      blush.position.set(s * 0.4, -0.14, 0.5);
-      blush.scale.set(0.3, 0.18, 1);
-      head.add(blush);
-      blushes.push(blush);
     }
     add(head, sphere(0.055, 18, 12), noseMat, [0, -0.115, 0.6], [1.35, 0.85, 0.8]);
     const mouthGeo = new THREE.TorusGeometry(0.045, 0.011, 6, 16, Math.PI);
@@ -763,7 +763,7 @@
     for (const s of [-1, 1]) {
       for (const k of [-1, 0, 1]) {
         const curve = new THREE.QuadraticBezierCurve3(
-          new V3(s * 0.22, -0.17 + k * 0.035, 0.56),
+          new V3(s * 0.2, -0.17 + k * 0.035, 0.545), // just under the skin: no blunt tube end showing
           new V3(s * 0.62, -0.1 + k * 0.07, 0.52),
           new V3(s * 1.0, -0.14 + k * 0.13, 0.38)
         );
@@ -931,16 +931,28 @@
       ray.setFromCamera(ndc, camera);
       return ray.intersectObjects(hitTargets, false).length > 0;
     }
+    // Mouse hover with a short grace period: near the cat's outline (and as
+    // its head nuzzles under the pointer) the hit test flips on and off from
+    // one move to the next, which flickered the ^ ^ eyes. It only counts as
+    // leaving once the pointer has been off the cat for HOVER_GRACE ms.
+    const HOVER_GRACE = 300;
+    let mouseOver = false;
+    let lastHitAt = -1e9;
     canvas.addEventListener("pointermove", (e) => {
       if (e.pointerType === "touch") return void stroke(e);
       if (!canHover) return;
-      const over = overCat(e);
-      if (over && hovering) purr = Math.min(1, purr + (Math.abs(e.movementX || 0) + Math.abs(e.movementY || 0)) * 0.006);
-      hovering = over;
-      canvas.style.cursor = over ? "pointer" : "";
+      mouseOver = overCat(e);
+      if (mouseOver) lastHitAt = performance.now();
+      if (mouseOver && hovering) purr = Math.min(1, purr + (Math.abs(e.movementX || 0) + Math.abs(e.movementY || 0)) * 0.006);
+      hovering = mouseOver || performance.now() - lastHitAt < HOVER_GRACE;
+      canvas.style.cursor = hovering ? "pointer" : "";
     });
     canvas.addEventListener("pointerleave", (e) => {
-      if (e.pointerType !== "touch") hovering = false;
+      if (e.pointerType === "touch") return;
+      mouseOver = false;
+      lastHitAt = -1e9;
+      hovering = false;
+      canvas.style.cursor = "";
     });
 
     // Touch: a finger stroking the cat pets it (the same ^ ^, blush, purr
@@ -1185,6 +1197,10 @@
       }
 
       // moods
+      if (canHover && !touch && hovering && !mouseOver && now - lastHitAt >= HOVER_GRACE) {
+        hovering = false;
+        canvas.style.cursor = "";
+      }
       happy = damp(happy, hovering || now < happyUntil ? 1 : 0, 10, dt);
       excited = damp(excited, wantExcited ? 1 : 0, 10, dt);
       sleepy = damp(sleepy, !reduceMotion && idleFor > DROWSY_MS && !wantExcited ? 1 : 0, idleFor > DROWSY_MS ? 0.6 : 6, dt);
@@ -1249,6 +1265,7 @@
 
       // ---- face ----
       const isHappy = happy > 0.5 && sleep < 0.3 && open < 0.1;
+      headMat.uniforms.uBlush.value = Math.max(happy, rub) * (1 - sleep); // pink cheeks when affectionate
       // sunglasses slide down onto the nose / back up off the head
       const gu = clamp((now - shadesAt) / 450, 0, 1);
       const gk = shadesOn ? 1 - Math.pow(1 - gu, 3) : 1 - gu * gu;
@@ -1274,7 +1291,6 @@
         eyeGroups[i].visible = !isHappy && gk < 0.5; // behind the sunglasses: hidden (they bulge past the lenses side-on)
         happyEyes[i].visible = isHappy && gk < 0.5;
         lids[i].rotation.x = lid;
-        blushes[i].material.opacity = 0.55 * Math.max(happy, rub);
       }
       for (let i = 0; i < 2; i++) {
         const s = i === 0 ? -1 : 1;
@@ -1311,7 +1327,6 @@
       sq += 0.06 * choo;
       cat.scale.set(1 + sq * 0.6, 1 - sq, 1 + sq * 0.6);
       bell.rotation.z = Math.sin(t * 9) * (hop >= 0 ? 0.5 : 0.05 + 0.1 * happy);
-      cat.rotation.z = reduceMotion ? 0 : Math.sin(now * 0.09) * 0.006 * purr; // purr shiver
 
       const sh = Math.max(0.4, 1 - y * 0.9);
       shadow.scale.set(sh, sh * 0.9, 1);
